@@ -1,0 +1,32 @@
+services:
+  postgres:
+    image: postgres:18-alpine3.22
+    container_name: postgres_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+      TZ: America/Lima
+      PGTZ: America/Lima
+    ports:
+      - "5432:5432"
+    volumes:
+      - C:/Users/marco/OneDrive/Documentos/postgres_data:/var/lib/postgresql
+      - C:/Users/marco/OneDrive/Documentos/postgres_backups:/backups
+    networks:
+      - red-postgres
+
+networks:
+  red-postgres:
+    external: true
+
+
+    <!--Para crear la red externa, puedes usar el siguiente comando en tu terminal-->
+    <!--docker network create --driver bridge --subnet 172.16.0.0/24 red-postgres-->
+    <!--Asegurate de crear los volumenes en sus respectivas rutas de acuerdo tu yaml-->
+    <!--luego levanta el contenedor con docker-compose up -d-->
+    <!--Luego de validar que todo esta correcto entra al contenedor con docker exec -it postgres_db sh-->
+    <!--usa el comando psql -U postgres y usa el comando CREATE DATABASE ASOCIACION para crear esa bd necesaria--> 
+    <!--Coloca el archivo .dmp en la ruta de backups revisa tu yaml-->
+    <!--pg_restore -U postgres -h localhost -p 5432 -d asociacion -F c /backups/bd_ASOCIACION.dump-->

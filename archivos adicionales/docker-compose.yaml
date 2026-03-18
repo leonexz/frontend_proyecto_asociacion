@@ -1,0 +1,22 @@
+services:
+  postgres:
+    image: postgres:18-alpine3.22
+    container_name: postgres_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+      TZ: America/Lima
+      PGTZ: America/Lima
+    ports:
+      - "5432:5432"
+    volumes:
+      - /postgres_data:/var/lib/postgresql/data
+      - /postgres_backups:/backups
+    networks:
+      - red-postgres
+
+networks:
+  red-postgres:
+    external: true

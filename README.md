@@ -12,16 +12,19 @@ Aplicacion Angular para registro/login, seleccion de grupos, modulo de administr
 ## Requisitos
 
 - Node.js 18 o superior
-- Angular CLI (opcional global, scripts de npm ya incluidos)
-- Backend corriendo en `http://localhost:3000`
+- npm 9 o superior
+- Backend corriendo en http://localhost:3000
 
-## Instalacion
+## Instalacion y ejecucion
 
 ```bash
 npm install
+npm start
 ```
 
-## Scripts
+App local por defecto: http://localhost:4200
+
+## Scripts disponibles
 
 ```bash
 npm start      # ng serve
@@ -29,13 +32,9 @@ npm run build  # ng build
 npm test       # ng test
 ```
 
-App local por defecto: `http://localhost:4200`
-
 ## Configuracion de API
 
-Archivo de entorno:
-
-- `src/environments/environment.ts`
+Archivo de entorno: src/environments/environment.ts
 
 Valor actual:
 
@@ -45,57 +44,121 @@ export const environment = {
 };
 ```
 
-## Estructura Principal
+## Docker Compose para PostgreSQL (Linux y Windows)
 
-- `src/app/app.routes.ts`: definicion de rutas.
-- `src/app/login/`: autenticacion.
-- `src/app/register/`: registro de usuario.
-- `src/app/group-selection/`: selector de grupos por usuario.
-- `src/app/admin/`: gestion administrativa (usuarios y grupos).
-- `src/app/group-a/`, `group-b/`, `group-c/`: vistas por grupo con tabs, upload PDF y cambio de password.
+En este proyecto hay 2 archivos YAML para levantar PostgreSQL:
 
-## Rutas Frontend
+- Linux: archivos adicionales/docker-compose.yaml
+- Windows: archivos adicionales/docker-compose.yamlversionwindows
 
-- `/` redirige a `/register`
-- `/register` registro de usuario
-- `/login` inicio de sesion
-- `/select-group` seleccion de grupo del usuario
-- `/group-a` vista de Grupo A
-- `/group-b` vista de Grupo B
-- `/group-c` vista de Grupo C
-- `/admin` panel de administracion (segun rol guardado en localStorage)
+### 1) Crear la red Docker externa (una sola vez)
 
-## Flujo Funcional
+```bash
+docker network create --driver bridge --subnet 172.16.0.0/24 red-postgres
+```
 
-1. Usuario se registra en `/register`.
-2. Usuario inicia sesion en `/login`.
-3. Se guarda `token` y `role` en `localStorage`.
-4. Se redirige a `/select-group`.
-5. El usuario entra a su grupo asignado (`A`, `B` o `C`).
-6. Dentro del grupo puede:
-	 - ver secciones por pestañas
-	 - subir/retiarar un PDF
-	 - cambiar su contraseña
-7. Si el rol es `admin`, puede entrar a `/admin` para gestionar usuarios y grupos.
+### 2) Crear carpetas para datos y backups
 
-## Integracion con Backend
+Linux:
+
+```bash
+sudo mkdir -p /postgres_data /postgres_backups
+sudo chmod -R 777 /postgres_data /postgres_backups
+```
+
+Windows (PowerShell):
+
+```powershell
+New-Item -ItemType Directory -Force C:/Users/marco/OneDrive/Documentos/postgres_data
+New-Item -ItemType Directory -Force C:/Users/marco/OneDrive/Documentos/postgres_backups
+```
+
+### 3) Levantar contenedor segun sistema operativo
+
+Linux:
+
+```bash
+docker compose -f "archivos adicionales/docker-compose.yaml" up -d
+```
+
+Windows:
+
+```powershell
+docker compose -f "archivos adicionales/docker-compose.yamlversionwindows" up -d
+```
+
+### 4) Validar que PostgreSQL esta arriba
+
+```bash
+docker ps
+docker logs -f postgres_db
+```
+
+### 5) Crear base y restaurar dump
+
+Entrar al contenedor:
+
+```bash
+docker exec -it postgres_db sh
+```
+
+Dentro del contenedor:
+
+```bash
+psql -U postgres -c "CREATE DATABASE asociacion;"
+pg_restore -U postgres -h localhost -p 5432 -d asociacion -F c /backups/bd_ASOCIACION.dump
+```
+
+Nota: copia previamente el archivo bd_ASOCIACION.dump a la carpeta de backups configurada en tu YAML.
+
+## Estructura principal
+
+- src/app/app.routes.ts: definicion de rutas.
+- src/app/login/: autenticacion.
+- src/app/register/: registro de usuario.
+- src/app/group-selection/: selector de grupos por usuario.
+- src/app/admin/: gestion administrativa (usuarios y grupos).
+- src/app/group-a/, src/app/group-b/, src/app/group-c/: vistas por grupo con tabs, upload PDF y cambio de password.
+
+## Rutas frontend
+
+- / redirige a /register
+- /register registro de usuario
+- /login inicio de sesion
+- /select-group seleccion de grupo del usuario
+- /group-a vista de Grupo A
+- /group-b vista de Grupo B
+- /group-c vista de Grupo C
+- /admin panel de administracion (segun rol guardado en localStorage)
+
+## Flujo funcional
+
+1. Usuario se registra en /register.
+2. Usuario inicia sesion en /login.
+3. Se guarda token y role en localStorage.
+4. Se redirige a /select-group.
+5. El usuario entra a su grupo asignado (A, B o C).
+6. Dentro del grupo puede ver secciones, subir/retirar PDF y cambiar contraseña.
+7. Si el rol es admin, puede entrar a /admin para gestionar usuarios y grupos.
+
+## Integracion con backend
 
 Endpoints usados desde frontend:
 
-- `POST /api/register`
-- `POST /api/login`
-- `GET /api/groups`
-- `GET /api/users` (admin)
-- `GET /api/all-groups` (admin)
-- `GET /api/users/:userId/groups` (admin)
-- `PUT /api/users/:id/group` (admin)
-- `DELETE /api/users/:userId/group/:groupId` (admin)
-- `PUT /api/users/:id/password` (admin)
-- `DELETE /api/users/:id` (admin)
-- `POST /api/subir-pdf`
-- `GET /api/user-files`
-- `DELETE /api/user-files/:id`
-- `PUT /api/change-password`
+- POST /api/register
+- POST /api/login
+- GET /api/groups
+- GET /api/users (admin)
+- GET /api/all-groups (admin)
+- GET /api/users/:userId/groups (admin)
+- PUT /api/users/:id/group (admin)
+- DELETE /api/users/:userId/group/:groupId (admin)
+- PUT /api/users/:id/password (admin)
+- DELETE /api/users/:id (admin)
+- POST /api/subir-pdf
+- GET /api/user-files
+- DELETE /api/user-files/:id
+- PUT /api/change-password
 
 Todos los endpoints protegidos envian el token como:
 
@@ -103,26 +166,13 @@ Todos los endpoints protegidos envian el token como:
 Authorization: Bearer <token>
 ```
 
-## Estado de Sesion
+## Estado de sesion
 
-Se usa `localStorage` con las claves:
-
-- `token`
-- `role`
-
+Se usa localStorage con las claves token y role.
 En logout se eliminan ambas.
 
-## Comportamientos Importantes
+## Mejoras recomendadas
 
-- `group-selection` muestra grupos segun respuesta del backend.
-- `admin` valida rol antes de cargar datos.
-- Vistas de grupo permiten solo un archivo PDF por usuario.
-- Validaciones de cambio de contraseña en cliente:
-	- campos completos
-	- confirmacion igual
-
-## Mejoras Recomendadas
-
-- Reemplazar `alert()` por notificaciones UI.
-- Implementar guardas de ruta (`CanActivate`) para proteger vistas por token/rol.
+- Reemplazar alert() por notificaciones UI.
+- Implementar guardas de ruta (CanActivate) para proteger vistas por token/rol.
 - Añadir interceptores HTTP para adjuntar token automaticamente.
