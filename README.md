@@ -78,13 +78,13 @@ New-Item -ItemType Directory -Force C:/Users/marco/OneDrive/Documentos/postgres_
 Linux:
 
 ```bash
-docker compose -f "archivos adicionales/docker-compose.yaml" up -d
+docker compose up -d 
 ```
 
 Windows:
 
-```powershell
-docker compose -f "archivos adicionales/docker-compose.yamlversionwindows" up -d
+```cmd como administrador con docker desktop instalado
+docker compose up -d
 ```
 
 ### 4) Validar que PostgreSQL esta arriba
@@ -141,7 +141,7 @@ Nota: copia previamente el archivo bd_ASOCIACION.dump a la carpeta de backups co
 6. Dentro del grupo puede ver secciones, subir/retirar PDF y cambiar contraseña.
 7. Si el rol es admin, puede entrar a /admin para gestionar usuarios y grupos.
 
-## Integracion con backend
+## Integracion con backend_
 
 Endpoints usados desde frontend:
 
@@ -160,11 +160,29 @@ Endpoints usados desde frontend:
 - DELETE /api/user-files/:id
 - PUT /api/change-password
 
+Importante para el panel admin:
+
+- El valor de apiUrl debe quedar como base del backend, por ejemplo: http://localhost:3000
+- Las llamadas del modulo admin deben incluir prefijo /api (ejemplo: /api/all-groups, /api/users)
+
 Todos los endpoints protegidos envian el token como:
 
 ```http
 Authorization: Bearer <token>
 ```
+
+## Troubleshooting
+
+### Error: Cannot GET /all-groups
+
+Causa comun: el frontend esta llamando sin el prefijo /api.
+
+Revision rapida:
+
+- Correcto: http://localhost:3000/api/all-groups
+- Incorrecto: http://localhost:3000/all-groups
+
+Si aparece este error, revisa las llamadas HTTP del modulo admin y confirma que todas usen /api.
 
 ## Estado de sesion
 
