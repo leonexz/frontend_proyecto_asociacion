@@ -1,4 +1,4 @@
-# Frontend Proyecto Venta
+# Frontend Proyecto Asociacion
 
 Aplicacion Angular para registro/login, seleccion de grupos, modulo de administracion y gestion de archivo PDF por usuario.
 
